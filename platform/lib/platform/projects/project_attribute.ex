@@ -9,7 +9,7 @@ defmodule Platform.Projects.ProjectAttribute do
   embedded_schema do
     field(:name, :string)
     field(:description, :string, default: "")
-    field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
+    field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select, :number])
     field(:options, {:array, :string}, default: [])
     # empty string if not a decorator
     field(:decorator_for, :string, default: "")
@@ -25,7 +25,8 @@ defmodule Platform.Projects.ProjectAttribute do
       :multi_select -> [:multi_select]
       :text -> [:text]
       :date -> [:date]
-      nil -> [:select, :multi_select, :text, :date]
+      :number -> [:number]
+      nil -> [:select, :multi_select, :text, :date, :number]
       other -> [other]
     end
   end
@@ -57,7 +58,7 @@ defmodule Platform.Projects.ProjectAttribute do
     end)
     |> validate_length(:name, min: 1, max: 240)
     |> validate_length(:description, min: 0, max: 240)
-    |> validate_inclusion(:type, [:select, :text, :date, :multi_select])
+    |> validate_inclusion(:type, [:select, :text, :date, :multi_select, :number])
     |> validate_change(:type, fn :type, type ->
       if type != attribute.type and not Enum.member?(compatible_types(attribute.type), type) do
         [type: "This is an invalid type for this attribute."]

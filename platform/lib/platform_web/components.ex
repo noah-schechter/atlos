@@ -1658,6 +1658,14 @@ defmodule PlatformWeb.Components do
               ) %>
             </div>
           <% end %>
+          <% :number -> %>
+        <div class="inline-block prose prose-sm my-px word-breaks">
+              <.attr_label label={@label} />
+              <%= raw(
+                @value
+                |> String.replace("\n", "")
+              ) %>
+            </div>
         <% :select -> %>
           <div class="inline-block">
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
@@ -1838,6 +1846,8 @@ defmodule PlatformWeb.Components do
         <% :date -> %>
           date, in the format
           <div class="badge ~urge inline-block m-px">YYYY-MM-DD</div>
+        <% :number -> %>
+          text containing only a number
         <% :multi_users -> %>
           usernames of users that are part of the project, comma separated
       <% end %>
@@ -3514,6 +3524,7 @@ defmodule PlatformWeb.Components do
             Preview <span class="font-semibold" x-text="user_loc"></span> on Google Maps &nearr;
           </span>
         </a>
+        
       <% end %>
     </article>
     """

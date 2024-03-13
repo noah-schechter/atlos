@@ -238,7 +238,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       "Multiple Select": :multi_select,
       Text: :text,
       Date: :date,
-      Location: :location
+      Location: :location,
+      Number: :number
     ]
 
   def name_mapping,

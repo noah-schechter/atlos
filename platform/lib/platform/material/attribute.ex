@@ -1003,6 +1003,7 @@ defmodule Platform.Material.Attribute do
     project = Keyword.get(opts, :project, nil)
 
     validations =
+      # NOAH
       case attribute.type do
         :multi_select ->
           if Attribute.allow_user_defined_options(attribute) == true do
