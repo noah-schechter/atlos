@@ -3,8 +3,10 @@ title: Key concepts
 type: docs
 sidebar:
   open: true
-weight: 2
+weight: 3
 ---
+
+![Atlos data hierarchy: a project contains incidents, which contain source material, which contain artifacts](/diagrams/data-hierarchy.svg)
 
 It's important to understand several core concepts before getting started:
 - **Incidents are the atom of Atlos.** [Incidents](/incidents/incidents/) describe a single event and are the core unit of content on Atlos. They include one or more pieces of source material. 

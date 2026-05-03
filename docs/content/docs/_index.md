@@ -6,6 +6,8 @@ cascade:
 ---
 ![The Atlos map.](map.png)
 
+{{< callout type="info" >}}New to Atlos? Start with the [Quickstart](/overview/quickstart/).{{< /callout >}}
+
 {{< cards >}} 
 {{< card link="overview/" title="Overview" icon="bolt" >}} 
 {{< card link="incidents/" title="Incidents" icon="map-pin" >}} 

@@ -13,6 +13,7 @@ Welcome to Atlos! In this section, we answer the question "What is Atlos?" and m
 
 {{< cards >}} 
 {{< card link="what-is-atlos/" title="What is Atlos?" icon="bolt" >}} 
+{{< card link="quickstart/" title="Quickstart" icon="play" >}} 
 {{< card link="key-concepts/" title="Key concepts" icon="light-bulb" >}} 
 {{< card link="pricing/" title="Pricing" icon="cash" >}} 
 {{< card link="roadmap/" title="Roadmap and changelog" icon="map" >}} 

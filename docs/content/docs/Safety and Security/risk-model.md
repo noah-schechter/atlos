@@ -6,6 +6,19 @@ sidebar:
   open: true
 ---
 
+## At a glance
+
+The table below summarizes how Atlos handles each category of data. Read the rest of this page for the full threat model.
+
+| Data category | Where it's stored | Who can access it | Retention |
+| --- | --- | --- | --- |
+| User and investigation data | PostgreSQL, on a server not directly connected to the public internet | Atlos staff with database access; project members per their permission level | Retained for the life of the account; full logical backups every 6 hours; continuous WAL backups for 7+ years |
+| Source material (archived media) | Amazon S3 (moving to Microsoft Azure), private buckets, encrypted at rest | Project members per their permission level; served via signed URLs | Retained for the life of the project; object versioning and MFA delete protection enabled |
+| Audit logs | Private Slack channel | Atlos founders only | 90 days |
+| Product analytics | Highlight (strict privacy mode — no investigation data sent) | Atlos team | Per Highlight's retention policy |
+
+We will disclose any of the above in response to a valid legal request from an authority with jurisdiction over Atlos (based in California, USA). If your threat model includes such requests, see [the guidance below](#guiding-principles).
+
 ## Guiding principles
 Atlos is a platform for open-source visual investigations. And while Atlos often makes visual investigations safer and more secure—for example, by enforcing access controls and by limiting exposure to graphic media—using Atlos also carries risks. Here are some key things to keep in mind as you use Atlos:
 

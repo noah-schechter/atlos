@@ -1,7 +1,7 @@
 ---
 title: Roadmap and changelog
 description: Where Atlos is headed next.
-weight: 4
+weight: 5
 ---
 
 We're actively developing Atlos. The platform is a product of the investigative community; we value your input. If you think something's missing from our roadmap, let us know via [email](mailto:contact@atlos.org) or on [Discord](https://discord.gg/gqCcHc9Gav).

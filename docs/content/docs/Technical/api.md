@@ -28,20 +28,7 @@ Atlos' API uses several terms that users of Atlos might be unfamiliar with:
 - **IDs** are unique identifiers for projects, pieces of source material, and artifacts. They look like this: `d0bce96b-4468-44be-a0d1-419dbd96a879`. While incidents have IDs that are sometimes exposed in the API, API endpoints use slugs to refer to incidents and IDs to refer to everything else.
 - **Artifacts** are the individual files in a piece of source material. A piece of source material, like an archived link, may have zero, one, or more photos, videos, and other files associated with it. This is the hierarchy of content on Atlos:
 
-{{< filetree/container >}}
-    {{< filetree/folder name="Project 1" >}}
-        {{< filetree/folder name="Incident 1" >}}
-            {{< filetree/folder name="Source Material 1">}}
-                {{< filetree/file name="Artifact 1" >}}
-                {{< filetree/file name="Artifact 2" >}}
-            {{< /filetree/folder >}}
-            {{< filetree/folder name="Source Material 2">}}
-            {{< /filetree/folder >}}
-        {{< /filetree/folder >}}
-        {{< filetree/folder name="Incident 2" >}}
-        {{< /filetree/folder >}}
-    {{< /filetree/folder >}}
-{{< /filetree/container >}}
+![Atlos data hierarchy: a project contains incidents, which contain source material, which contain artifacts](/diagrams/data-hierarchy.svg)
 
 ## Authentication
 API tokens are sensitive—they allow read and write access to your project. By default, every API token will have access to a `READ` endpoint.
@@ -61,7 +48,9 @@ Paginate using the `cursor` query parameter, whose value is provided by the `nex
 ## API Endpoints
 The Atlos API supports `GET` and `POST` endpoints. All `GET` endpoints return 30 results at a time.
 
-### Get all incidents in a project
+### Incidents
+
+#### Get all incidents in a project
 `GET /api/v2/incidents` returns all incidents in a project.
 - **Sort—** Most recently modified incidents are listed first.
 - **Filter—** You can optionally pass search parameters to filter results using the same format as the in-platform incident search page's URL. For example, to return only incidents with the status "To Do" or "Cancelled", query `/api/v2/incidents?attr_status[]=To+Do&attr_status=Cancelled`.
@@ -74,117 +63,7 @@ requests.get(
 )
 ```
 
-### Get all source material in a project
-`GET /api/v2/source_material` returns all source material in a project.
-- **Sort—** Most recently modified source material is listed first.
-
-```python
-requests.get(
-    f"httpps://platform.atlos.org/api/v2/source_material",
-    headers={"Authorization": f"Bearer {api_token}"},
-    params={"cursor": cursor},
-)
-```
-
-### Get a specific piece of source material
-`GET /api/v2/source_material/:id` returns the source material with the given ID.
-
-```python
-requests.get(
-    f"https://platform.atlos.org/api/v2/source_material/d0bce96b-4468-44be-a0d1-419dbd96a879",
-    headers={"Authorization": f"Bearer {api_token}"}
-)
-```
-
-### Create a new piece of source material
-`POST /api/v2/source_material/new/:slug` creates a new piece of source material in the already-existing incident with slug `:slug`. This endpoint has two optional parameters:
-- `url`, a URL for Atlos to archive (optional).
-- `archive`, a boolean value indicating whether Atlos should archive the URL in `url` (optional).
-
-Note that if you opt not to archive a link, you will create an empty piece of source material to which you can add artifacts later.
-
-```python
-requests.post(
-    f"https://platform.atlos.org/api/v2/source_material/new/ABCDEF",
-    headers={"Authorization": f"Bearer {api_token}"},
-    params={"url": "https://atlos.org", "archive": True},
-)
-```
-
-### Set source material metadata
-`POST /api/v2/source_material/metadata/:id/:namespace` with parameter `metadata` (JSON dictionary) sets the metadata of the given piece of source material (identified by its ID) in the given namespace. Namespaces are used to separate different types of metadata. Typically, an API user would use a namespace that is unique to their application (for example, Bellingcat's [auto archiver](https://github.com/bellingcat/auto-archiver) uses the `auto-archiver` namespace). This endpoint expects a JSON content type.
-
-Using this endpoint will overwrite any existing metadata in the given namespace. Metadata is returned by the API and may be shown in the Atlos web interface as well.
-
-```python
-requests.post(
-    f"https://platform.atlos.org/api/v2/source_material/metadata/:id/auto-archiver",
-    headers={"Authorization": f"Bearer {api_token}"},
-    json={"metadata": {"key": "value"}},
-)
-```
-
-### Upload a file (artifact) to a piece of source material
-`POST /api/v2/source_material/upload/:id` uploads a file to the piece of source material with ID `:id`. This endpoint has two parameters:
-- `file`, which should be sent as a multipart form request (required).
-- `title`, the title of the file (optional). If provided, Atlos will be display the title in the interface.
-
-Note: To upload a file to a new incident, you must first [create an empty piece of source material](/technical/api/#create-a-new-piece-of-source-material). Files always belong to a piece of source material.
-
-```python
-requests.post(
-    f"https://platform.atlos.org/api/v2/source_material/upload/:id",
-    headers={"Authorization": f"Bearer {api_token}"},
-    params={
-        "title": media.properties
-    },
-    files={"file": (os.path.basename(media.filename), open(media.filename, "rb"))},
-)
-```
-
-### Update artifact visibility
-`POST /api/v2/source_material/artifact/:version_id/:artifact_id/visibility` updates the visibility of an artifact within a piece of source material. This endpoint has one required parameter:
-- `visibility`, a string that should be either "visible" or "hidden". Note that "hidden" corresponds to "minimized" in the Atlos interface.
-
-Minimizing artifacts does not delete them; it simply lowers their prominence in the Atlos interface. All artifacts are still accessible via the API.
-
-The `:version_id` is the ID of the piece of source material, and `:artifact_id` is the ID of the specific artifact within that source material.
-
-```python
-requests.post(
-    f"https://platform.atlos.org/api/v2/source_material/artifact/{version_id}/{artifact_id}/visibility",
-    headers={"Authorization": f"Bearer {api_token}"},
-    json={"visibility": "private"},
-)
-```
-
-
-### Get updates and comments
-`GET /api/v2/updates` returns all updates (including comments) in a project.
-- **Sort—** Most recent updates are listed first.
-- **Filter—** To see updates for a specific incident, append the `slug` query parameter to the endpoint (e.g., `/api/v2/updates?slug=incident-slug`). The slug is the last part of the URL for the incident, and is also available in the ‘slug’ field of the incident object returned by other endpoints.
-
-```python
-requests.get(
-    f"https://platform.atlos.org/api/v2/updates?slug=ABCDEF",
-    headers={"Authorization": f"Bearer {api_token}"},
-    params={"cursor": cursor},
-)
-```
-
-### Add a comment to an incident
-`POST /api/v2/add_comment/:slug` adds a comment to the incident with slug `:slug`. This endpoint has one required parameter:
--  `message` contains the string contents of the comment.
-
-```python
-requests.post(
-    f"https://platform.atlos.org/api/v2/add_comment/ABCDEF",
-    headers={"Authorization": f"Bearer {api_token}"},
-    params={"message": "This is a comment."},
-)
-```
-
-### Update an incident's attribute value
+#### Update an incident's attribute value
 `POST /api/v2/update/:slug/:attribute_name` updates the attribute `:attribute_name` in the incident with slug `:slug`. It has two parameters:
 - `value`, the new value of the attribute (required). For text or single-select attributes, `value` should be a string. For multi-select attributes, `value` should be a list of strings.
 - `message`, a string to be displayed as an explanation for the update (optional). If `message` is provided, it will be added as a comment to the incident (as part of the tracked change).
@@ -208,3 +87,136 @@ requests.post(
     json={"value": ["Civilian-military interaction", "Protest"], "message": "This is a comment."},
 )
 ```
+
+#### Add a comment to an incident
+`POST /api/v2/add_comment/:slug` adds a comment to the incident with slug `:slug`. This endpoint has one required parameter:
+-  `message` contains the string contents of the comment.
+
+```python
+requests.post(
+    f"https://platform.atlos.org/api/v2/add_comment/ABCDEF",
+    headers={"Authorization": f"Bearer {api_token}"},
+    params={"message": "This is a comment."},
+)
+```
+
+### Source material
+
+#### Get all source material in a project
+`GET /api/v2/source_material` returns all source material in a project.
+- **Sort—** Most recently modified source material is listed first.
+
+```python
+requests.get(
+    f"https://platform.atlos.org/api/v2/source_material",
+    headers={"Authorization": f"Bearer {api_token}"},
+    params={"cursor": cursor},
+)
+```
+
+#### Get a specific piece of source material
+`GET /api/v2/source_material/:id` returns the source material with the given ID.
+
+```python
+requests.get(
+    f"https://platform.atlos.org/api/v2/source_material/d0bce96b-4468-44be-a0d1-419dbd96a879",
+    headers={"Authorization": f"Bearer {api_token}"}
+)
+```
+
+#### Create a new piece of source material
+`POST /api/v2/source_material/new/:slug` creates a new piece of source material in the already-existing incident with slug `:slug`. This endpoint has two optional parameters:
+- `url`, a URL for Atlos to archive (optional).
+- `archive`, a boolean value indicating whether Atlos should archive the URL in `url` (optional).
+
+Note that if you omit `url`, you will create an empty piece of source material to which you can add artifacts later. If you provide `url` but set `archive` to `false`, Atlos will record the URL without attempting to archive it.
+
+```python
+requests.post(
+    f"https://platform.atlos.org/api/v2/source_material/new/ABCDEF",
+    headers={"Authorization": f"Bearer {api_token}"},
+    params={"url": "https://atlos.org", "archive": True},
+)
+```
+
+#### Set source material metadata
+`POST /api/v2/source_material/metadata/:id/:namespace` with parameter `metadata` (JSON dictionary) sets the metadata of the given piece of source material (identified by its ID) in the given namespace. Namespaces are used to separate different types of metadata. Typically, an API user would use a namespace that is unique to their application (for example, Bellingcat's [auto archiver](https://github.com/bellingcat/auto-archiver) uses the `auto-archiver` namespace). This endpoint expects a JSON content type.
+
+Using this endpoint will overwrite any existing metadata in the given namespace. Metadata is returned by the API and may be shown in the Atlos web interface as well.
+
+```python
+requests.post(
+    f"https://platform.atlos.org/api/v2/source_material/metadata/:id/auto-archiver",
+    headers={"Authorization": f"Bearer {api_token}"},
+    json={"metadata": {"key": "value"}},
+)
+```
+
+#### Upload a file (artifact) to a piece of source material
+`POST /api/v2/source_material/upload/:id` uploads a file to the piece of source material with ID `:id`. This endpoint has two parameters:
+- `file`, which should be sent as a multipart form request (required).
+- `title`, the title of the file (optional). If provided, Atlos will display the title in the interface.
+
+Note: To upload a file to a new incident, you must first [create an empty piece of source material](/technical/api/#create-a-new-piece-of-source-material). Files always belong to a piece of source material.
+
+```python
+with open(file_path, "rb") as f:
+    requests.post(
+        f"https://platform.atlos.org/api/v2/source_material/upload/{source_material_id}",
+        headers={"Authorization": f"Bearer {api_token}"},
+        params={"title": "Screenshot from Telegram"},
+        files={"file": (os.path.basename(file_path), f)},
+    )
+```
+
+#### Update artifact visibility
+`POST /api/v2/source_material/artifact/:version_id/:artifact_id/visibility` updates the visibility of an artifact within a piece of source material. This endpoint has one required parameter:
+- `visibility`, a string that should be either "visible" or "hidden". Note that "hidden" corresponds to "minimized" in the Atlos interface.
+
+Minimizing artifacts does not delete them; it simply lowers their prominence in the Atlos interface. All artifacts are still accessible via the API.
+
+The `:version_id` is the ID of the piece of source material, and `:artifact_id` is the ID of the specific artifact within that source material.
+
+```python
+requests.post(
+    f"https://platform.atlos.org/api/v2/source_material/artifact/{version_id}/{artifact_id}/visibility",
+    headers={"Authorization": f"Bearer {api_token}"},
+    json={"visibility": "private"},
+)
+```
+
+### Updates and comments
+
+#### Get updates and comments
+`GET /api/v2/updates` returns all updates (including comments) in a project.
+- **Sort—** Most recent updates are listed first.
+- **Filter—** To see updates for a specific incident, append the `slug` query parameter to the endpoint (e.g., `/api/v2/updates?slug=incident-slug`). The slug is the last part of the URL for the incident, and is also available in the ‘slug’ field of the incident object returned by other endpoints.
+
+```python
+requests.get(
+    f"https://platform.atlos.org/api/v2/updates?slug=ABCDEF",
+    headers={"Authorization": f"Bearer {api_token}"},
+    params={"cursor": cursor},
+)
+```
+
+### Errors and limits
+
+The API returns standard HTTP status codes:
+
+- `200` — success
+- `400` — malformed request (e.g., missing required parameter)
+- `401` — missing or invalid API token
+- `403` — token lacks the required permission for the action
+- `404` — resource not found, or token does not have access to it
+- `422` — request was valid but could not be processed (e.g., attribute value rejected)
+- `429` — rate limited
+- `5xx` — server error; please retry with backoff and contact us if it persists
+
+Error responses include a JSON body with an `error` key describing the issue when possible.
+
+<!-- TODO: confirm error envelope -->
+
+The API is rate-limited per token. If you hit the limit, you will receive a `429` response; back off and retry. If you are building an integration that needs higher limits, please get in touch.
+
+*API reference last updated: 2026-05-03*

@@ -1,7 +1,7 @@
 ---
 title: Pricing
 description: A guide to Atlos' pricing plans. 
-weight: 3
+weight: 4
 ---
 {{< callout type="info" >}}
 **We haven't yet implemented the free or pro tiers but plan to in the next month.**\
